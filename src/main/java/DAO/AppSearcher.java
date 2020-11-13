@@ -15,24 +15,24 @@ public class AppSearcher {
     public static ArrayList<AppSearchItem> search(String name, String dev, int count, int page, List<String> tags, double lowRat, double highRat, double lowPri, double highPri, int lowSell, int highSell, String order, String orderby) throws SQLException, ClassNotFoundException {
         //生成SQL语句-------------------------------------------
         ConcurrentLinkedQueue<String> par = new ConcurrentLinkedQueue<>(); //SQL的参数
-        StringBuffer sql = new StringBuffer("select AppID, Name, Volume, LowPrice, Rating from (select *, row_number() over(order by ");
+        StringBuffer sql = new StringBuffer("select * from (select *, row_number() over(order by ");
         if ("def".equals(orderby)) {
-            sql.append("(Volume-LowPrice+Rating)");
+            sql.append("(Volume-Price+Rating)");
         } else if ("sell".equals(orderby)) {
             sql.append("Volume");
         } else if ("price".equals(orderby)) {
-            sql.append("LowPrice");
+            sql.append("Price");
         } else if ("rating".equals(orderby)) {
             sql.append("rating");
         }
         sql.append(" " + order + ") rownum from AppSearchInfo where ");
 
         sql.append(String.format("Rating Between %f and %f", lowRat, highRat));
-        sql.append(String.format(" AND LowPrice Between %f and %e", lowPri, highPri));
+        sql.append(String.format(" AND Price Between %f and %e", lowPri, highPri));
         sql.append(String.format(" AND Volume Between %d and %d", lowSell, highSell));
         if (name != null) {
             sql.append(" AND Name like ?");
-            par.offer(name);
+            par.offer("%" + name + "%");
         }
         if (dev != null) {
             sql.append(" AND Dev=?");
@@ -44,36 +44,27 @@ public class AppSearcher {
         //还没有实现
 
         ArrayList<AppSearchItem> items = new ArrayList<>();
-        Connection con = Utils.connectDB("AppStoreDesign");
-        PreparedStatement stat = con.prepareStatement(sql.toString());
-        for (int i=1; !par.isEmpty(); ++i)
-            stat.setNString(i, par.poll());
+        try (
+            Connection con = Utils.connectDB("AppStoreDesign");
+            PreparedStatement stat = con.prepareStatement(sql.toString())
+        ) {
+            for (int i=1; !par.isEmpty(); ++i)
+                stat.setNString(i, par.poll());
+            try (ResultSet res = stat.executeQuery()) {
+                while(res.next()) { //遍历App
+                    AppSearchItem item = new AppSearchItem();
+                    item.id = res.getNString("AppID");
+                    item.name = res.getNString("Name");
+                    item.price = res.getDouble("Price");
+                    item.oriprice = res.getDouble("OriginalPrice");
+                    item.rating = res.getDouble("Rating");
+                    item.iconType = res.getString("IconType");
+                    item.tags = AppTagDAO.getAppTags(item.id, con);//获取Tag
 
-        ResultSet res = stat.executeQuery();
-        while(res.next()) { //遍历App
-            AppSearchItem item = new AppSearchItem();
-            item.id = res.getNString("AppID");
-            item.name = res.getNString("Name");
-            item.price = res.getDouble("LowPrice");
-            item.rating = res.getDouble("Rating");
-            //获取Tag
-            PreparedStatement tagQuery = con.prepareStatement("select Tag from AppTags where AppID = ?");
-            tagQuery.setNString(1, item.id);
-            ResultSet tagRes = tagQuery.executeQuery();
-            StringBuffer sb = new StringBuffer();
-            while(tagRes.next())
-                sb.append(tagRes.getNString(1) + "|");
-            sb.deleteCharAt(sb.length()-1);
-            item.tags = sb.toString();
-            tagRes.close();
-            tagQuery.close();
-
-            items.add(item);
+                    items.add(item);
+                }
+                return items;
+            }
         }
-
-        res.close();
-        stat.close();
-        con.close();
-        return items;
     }
 }

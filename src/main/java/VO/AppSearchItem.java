@@ -6,4 +6,5 @@ public class AppSearchItem {
     public double rating;
     public double price, oriprice;
     public String tags;
+    public String iconType;
 }

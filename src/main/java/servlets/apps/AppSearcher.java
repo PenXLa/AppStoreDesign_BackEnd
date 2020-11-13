@@ -87,27 +87,17 @@ public class AppSearcher extends HttpServlet {
             if (pOrderBy != null && pOrderBy.matches("(def|sell|price|rating)")) orderby = pOrderBy;
             if (pOrder != null && pOrder.matches("(asc|desc)")) order = pOrder;
         } catch (RuntimeException e) {
-            res.put("result", "fail");
+            res.put("success", false);
             res.put("reason", "Wrong parameter format.");
             return res;
         }
 
         try {
             ArrayList<AppSearchItem> items = DAO.AppSearcher.search(name, dev, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
-            JSONArray arr = new JSONArray();
-            for (AppSearchItem item : items) {
-                JSONObject appJson = new JSONObject();
-                appJson.put("name", item.name);
-                appJson.put("id", item.id);
-                appJson.put("price", item.price);
-                appJson.put("rating", item.rating);
-                appJson.put("tags", item.tags);
-                arr.add(appJson);
-            }
-            res.put("apps", arr);
-            res.put("res", "success");
+            res.put("apps", items);
+            res.put("success", true);
         } catch (SQLException | ClassNotFoundException e) {
-            res.put("result", "fail");
+            res.put("success", false);
             res.put("resaon", "DB Error");
             e.printStackTrace();
         }
