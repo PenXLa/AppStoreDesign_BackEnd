@@ -1,6 +1,7 @@
 package VO;
 
-public class AppSearchItem {
+public class AppSearchResult {
+
     public String name;
     public String id;
     public double rating;

@@ -1,6 +1,6 @@
 package DAO;
 
-import VO.AppSearchItem;
+import VO.AppSearchResult;
 import kernel.Utils;
 
 import java.sql.Connection;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AppSearcher {
-    public static ArrayList<AppSearchItem> search(String name, String dev, int count, int page, List<String> tags, double lowRat, double highRat, double lowPri, double highPri, int lowSell, int highSell, String order, String orderby) throws SQLException, ClassNotFoundException {
+    public static ArrayList<AppSearchResult> search(String name, String dev, int count, int page, List<String> tags, double lowRat, double highRat, double lowPri, double highPri, int lowSell, int highSell, String order, String orderby) throws SQLException, ClassNotFoundException {
         //生成SQL语句-------------------------------------------
         ConcurrentLinkedQueue<String> par = new ConcurrentLinkedQueue<>(); //SQL的参数
         StringBuffer sql = new StringBuffer("select * from (select *, row_number() over(order by ");
@@ -43,7 +43,7 @@ public class AppSearcher {
         //标签过滤
         //还没有实现
 
-        ArrayList<AppSearchItem> items = new ArrayList<>();
+        ArrayList<AppSearchResult> items = new ArrayList<>();
         try (
             Connection con = Utils.connectDB("AppStoreDesign");
             PreparedStatement stat = con.prepareStatement(sql.toString())
@@ -52,7 +52,7 @@ public class AppSearcher {
                 stat.setNString(i, par.poll());
             try (ResultSet res = stat.executeQuery()) {
                 while(res.next()) { //遍历App
-                    AppSearchItem item = new AppSearchItem();
+                    AppSearchResult item = new AppSearchResult();
                     item.id = res.getNString("AppID");
                     item.name = res.getNString("Name");
                     item.price = res.getDouble("Price");

@@ -1,7 +1,6 @@
 package servlets.apps;
 
-import VO.AppSearchItem;
-import com.alibaba.fastjson.JSONArray;
+import VO.AppSearchResult;
 import com.alibaba.fastjson.JSONObject;
 
 import javax.servlet.ServletException;
@@ -93,9 +92,9 @@ public class AppSearcher extends HttpServlet {
         }
 
         try {
-            ArrayList<AppSearchItem> items = DAO.AppSearcher.search(name, dev, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
+            ArrayList<AppSearchResult> items = DAO.AppSearcher.search(name, dev, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
             res.put("apps", items);
-            res.put("success", true);
+            res.put("success", rue);t
         } catch (SQLException | ClassNotFoundException e) {
             res.put("success", false);
             res.put("resaon", "DB Error");
