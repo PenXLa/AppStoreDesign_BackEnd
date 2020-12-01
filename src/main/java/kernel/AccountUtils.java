@@ -49,16 +49,15 @@ public class AccountUtils {
         }
     }
 
-    public static boolean login(HttpServletResponse resp, String email, String pwd, boolean remember) throws SQLException, ClassNotFoundException {
-        Connection con = Utils.connectDB("AppStoreDesign");
-        PreparedStatement stat = con.prepareStatement("select Email, PassHash, Name from Users where Email=?");
-        stat.setNString(1, email);
-        var res = stat.executeQuery();
-        boolean suc = false;
-        if (res.next() && BCrypt.verifyer().verify(pwd.toCharArray(), res.getString("PassHash")).verified) {
-            String user = res.getNString("Name");//获取用户名
-            email = res.getNString("Email");//获取大小写准确的Email
-            try {
+    public static boolean login(HttpServletResponse resp, String email, String pwd, boolean remember) throws SQLException, ClassNotFoundException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+        try(
+            Connection con = Utils.connectDB("AppStoreDesign");
+            PreparedStatement stat = con.prepareStatement("select Email, PassHash from Logins where Email=?");
+        ) {
+            stat.setNString(1, email);
+            var res = stat.executeQuery();
+            if (res.next() && BCrypt.verifyer().verify(pwd.toCharArray(), res.getString("PassHash")).verified) {
+                email = res.getNString("Email");//获取大小写准确的Email
                 Cookie emailCK = new Cookie(COOKIE_USER, email);
                 Cookie chkCodeCK = new Cookie(COOKIE_CHECK_CODE, calcCheckCode(email));
                 if (remember) {
@@ -68,15 +67,10 @@ public class AccountUtils {
                 emailCK.setPath("/"); chkCodeCK.setPath("/");
                 resp.addCookie(emailCK);
                 resp.addCookie(chkCodeCK);
-                suc = true;
-            } catch (InvalidKeyException | BadPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException | NoSuchPaddingException e) {
-                e.printStackTrace();
-            }
+
+                return true;
+            } else return false;
         }
-        res.close();
-        stat.close();
-        con.close();
-        return suc;
     }
 
     //这是对cookie进行aes加密，不查询数据库的方案

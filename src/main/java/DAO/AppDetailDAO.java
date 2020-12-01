@@ -1,7 +1,9 @@
 package DAO;
 
 import VO.AppDetailVO;
+import VO.publisher.PublisherAppDetailVO;
 import kernel.Utils;
+import servlets.publisherAPI.PublisherAppDetail;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +23,7 @@ public class AppDetailDAO {
                 if (res.next()) {
                     AppDetailVO detail = new AppDetailVO();
                     detail.CPU = res.getNString("Req_CPU");
-                    detail.dev = res.getNString("DevName");
+                    detail.publisher = res.getNString("PubName");
                     detail.GPU = res.getNString("Req_GPU");
                     detail.OS = res.getNString("Req_OS");
                     detail.req_other = res.getNString("Req_Other");
@@ -72,6 +74,26 @@ public class AppDetailDAO {
                     plans.add(plan);
                 }
                 return plans;
+            }
+        }
+    }
+
+
+    public static PublisherAppDetailVO getPublisherAppDetail(String publisher, String appid) throws SQLException, ClassNotFoundException, AppNotFoundException {
+        try (
+                Connection con = Utils.connectDB("AppStoreDesign");
+                PreparedStatement stat = con.prepareStatement("select * from AppDetails where AppID = ? and Publisher = ?")
+        ) {
+            stat.setNString(1, appid);
+            stat.setNString(2, publisher);
+            try (ResultSet res = stat.executeQuery()) {
+                if (res.next()) {
+                    PublisherAppDetailVO detail = new PublisherAppDetailVO();
+                    detail.active = res.getBoolean("Active");
+                    return detail;
+                } else {
+                    throw new AppNotFoundException();
+                }
             }
         }
     }

@@ -5,12 +5,17 @@ import kernel.AccountUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 
 @WebServlet("/login")
@@ -44,7 +49,7 @@ public class Login extends HttpServlet {
             try {
                 String rem = req.getParameter("remember");
                 res = AccountUtils.login(resp, email, pwd, "on".equals(rem))? LOGIN_SUCCESS : LOGIN_WRONG;
-            } catch (SQLException | ClassNotFoundException e) {
+            } catch (SQLException | ClassNotFoundException | IllegalBlockSizeException | NoSuchPaddingException | BadPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
                 res = LOGIN_DB_ERROR;
                 e.printStackTrace();
             }

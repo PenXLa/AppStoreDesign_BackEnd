@@ -21,6 +21,7 @@ public class AccountStatus extends HttpServlet {
             res.put("loggedIn", true);
             res.put("name", user.getName());
             res.put("email", user.getEmail());
+            res.put("role", user.getRole());
         } else {
             res.put("loggedIn", false);
         }

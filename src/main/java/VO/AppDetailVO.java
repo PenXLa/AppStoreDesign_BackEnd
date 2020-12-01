@@ -8,13 +8,13 @@ public class AppDetailVO {
     public String version;
     public long RAM, hardDisk;
     public String CPU, GPU, OS, req_other;
-    public String dev; //开发商名字。前端不需要开发商的ID
+    public String publisher; //开发商名字(前端不需要开发商的ID)
     public Date lastUpdate;
     public double rating;
     public String site;
     public String iconType;
     public String introduction;
-    public String tags;
+    public String[] tags;
     public static class AppPlan {
         public String id;
         public String name;

@@ -19,7 +19,7 @@ public class AppSearcher extends HttpServlet {
     /*
     * Search的参数有
     * name：名字，支持模糊搜索
-    * dev：开发商id
+    * publisher：开发商id
     * tag：拥有tag，多tag用|分隔
     * lowrating：评分低线
     * highrating：评分高线
@@ -64,7 +64,7 @@ public class AppSearcher extends HttpServlet {
 
         int count = MAX_COUNT, page = 1;
         String name = req.getParameter("name");
-        String dev = req.getParameter("dev");
+        String publisher = req.getParameter("publisher");
         ArrayList<String> tags = null;
         double lowRat = 0, highRat = 10;
         double lowPri = 0, highPri = 1e300;//1e300作为无穷大
@@ -92,9 +92,9 @@ public class AppSearcher extends HttpServlet {
         }
 
         try {
-            ArrayList<AppSearchResult> items = DAO.AppSearcher.search(name, dev, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
-            res.put("apps", items);
-            res.put("success", rue);t
+            AppSearchResult searchResult = DAO.AppSearcher.search(name, publisher, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
+            res.put("searchResult", searchResult);
+            res.put("success", true);
         } catch (SQLException | ClassNotFoundException e) {
             res.put("success", false);
             res.put("resaon", "DB Error");
