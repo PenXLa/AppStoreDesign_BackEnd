@@ -3,6 +3,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.jetbrains.annotations.NotNull;
+import utils.Utils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -29,7 +30,7 @@ public class AccountUtils {
 
 
 
-    private static @NotNull String calcHash(@NotNull String pwd) {
+    public static @NotNull String calcHash(@NotNull String pwd) {
         return BCrypt.withDefaults().hashToString(HASH_COST, pwd.toCharArray());
     }
     //计算校验码
@@ -51,8 +52,8 @@ public class AccountUtils {
 
     public static boolean login(HttpServletResponse resp, String email, String pwd, boolean remember) throws SQLException, ClassNotFoundException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         try(
-            Connection con = Utils.connectDB("AppStoreDesign");
-            PreparedStatement stat = con.prepareStatement("select Email, PassHash from Logins where Email=?");
+                Connection con = Utils.connectDB("AppStoreDesign");
+                PreparedStatement stat = con.prepareStatement("select Email, PassHash from Logins where Email=?");
         ) {
             stat.setNString(1, email);
             var res = stat.executeQuery();
@@ -160,27 +161,7 @@ public class AccountUtils {
                             CP_NAME_NOT_EXISTS = 2,
                             CP_INVALID_PWD = 3,
                             CP_SUCCESS = 0;
-    public static int changePassword(String email, String newPwd) throws SQLException, ClassNotFoundException {
-        int code = 0;
-        if (email == null || email.trim().equals("")) return CP_INVALID_NAME;
-        if (newPwd == null || newPwd.equals("")) return CP_INVALID_PWD;
-        email = email.trim();
 
-        Connection con = Utils.connectDB("AppStoreDesign");
-        PreparedStatement stat = con.prepareStatement("select * from Users where Email=?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-        stat.setNString(1, email);
-        var res = stat.executeQuery();
-        if (!res.next()) code = CP_NAME_NOT_EXISTS;
-        else {
-            res.updateString("PassHash", calcHash(newPwd));
-            res.updateRow();
-            code = CP_SUCCESS;
-        }
-        res.close();
-        stat.close();
-        con.close();
-        return code;
-    }
 
 
     //用于确认用户是否有访问权限的函数
@@ -199,4 +180,5 @@ public class AccountUtils {
         }
         return UserPermissionResult.HAS;
     }
+
 }

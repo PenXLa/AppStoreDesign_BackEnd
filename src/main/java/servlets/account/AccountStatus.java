@@ -16,12 +16,10 @@ public class AccountStatus extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Account user = AccountUtils.getUser(req.getCookies());
-        JSONObject res = new JSONObject();
+        JSONObject res = null;
         if (user != null) {
+            res = (JSONObject)JSONObject.toJSON(user);
             res.put("loggedIn", true);
-            res.put("name", user.getName());
-            res.put("email", user.getEmail());
-            res.put("role", user.getRole());
         } else {
             res.put("loggedIn", false);
         }

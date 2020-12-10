@@ -1,4 +1,4 @@
-package kernel;
+package utils;
 
 
 import java.sql.Connection;
@@ -17,4 +17,13 @@ public class Utils {
     }
 
 
+
+    //尝试转换string到int。如果失败，返回def
+    public static int tryParseInt(String s, int def) {
+        try {
+            return Integer.parseInt(s);
+        } catch (Exception e) {
+            return def;
+        }
+    }
 }

@@ -4,13 +4,13 @@ import java.util.Date;
 
 public class AppDetailVO {
     public String id, name;
-    public long size;
+    public Long size = null;
     public String version;
-    public long RAM, hardDisk;
+    public Long RAM = null, hardDisk = null;
     public String CPU, GPU, OS, req_other;
     public String publisher; //开发商名字(前端不需要开发商的ID)
     public Date lastUpdate;
-    public double rating;
+    public Double rating = null;
     public String site;
     public String iconType;
     public String introduction;
@@ -22,7 +22,10 @@ public class AppDetailVO {
         public double price, oriprice;
         public int duration;
         public boolean isMain;
+        public Boolean bought;
     }
     public AppPlan mainPlan;
     public AppPlan[] subscribePlans;
+    public Boolean active = null;
+    public Integer volume = null;
 }

@@ -2,6 +2,8 @@ package servlets.apps;
 
 import VO.AppSearchResult;
 import com.alibaba.fastjson.JSONObject;
+import kernel.Account;
+import kernel.AccountUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,6 +22,7 @@ public class AppSearcher extends HttpServlet {
     * Search的参数有
     * name：名字，支持模糊搜索
     * publisher：开发商id
+    * myapps：指定搜索某个用户自己拥有的app，无值
     * tag：拥有tag，多tag用|分隔
     * lowrating：评分低线
     * highrating：评分高线
@@ -36,6 +39,7 @@ public class AppSearcher extends HttpServlet {
     *   sell交易量
     *   price价格
     *   rating评分
+    *   name名字
     *
     * order：升序/降序排列
     *   asc升序
@@ -61,6 +65,7 @@ public class AppSearcher extends HttpServlet {
         String pHighSell = req.getParameter("highsell");
         String pOrderBy = req.getParameter("orderby"); if (pOrderBy!=null) pOrderBy=pOrderBy.toLowerCase();
         String pOrder = req.getParameter("order"); if (pOrder!=null) pOrder=pOrder.toLowerCase();
+        String pMyApps = req.getParameter("myapps");
 
         int count = MAX_COUNT, page = 1;
         String name = req.getParameter("name");
@@ -70,6 +75,8 @@ public class AppSearcher extends HttpServlet {
         double lowPri = 0, highPri = 1e300;//1e300作为无穷大
         int lowSell = 0, highSell = Integer.MAX_VALUE;
         String orderby = "def", order = "desc";
+        Account user = AccountUtils.getUser(req.getCookies());
+        String userid = user != null && pMyApps != null ? user.getEmail() : null; //只有包含myApps参数并且已经登录时才进行用户app搜索
 
         JSONObject res = new JSONObject();
         try {
@@ -92,7 +99,7 @@ public class AppSearcher extends HttpServlet {
         }
 
         try {
-            AppSearchResult searchResult = DAO.AppSearcher.search(name, publisher, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
+            AppSearchResult searchResult = DAO.AppSearcher.search(name, publisher, userid, count, page, tags, lowRat, highRat, lowPri, highPri,lowSell, highSell, order, orderby);
             res.put("searchResult", searchResult);
             res.put("success", true);
         } catch (SQLException | ClassNotFoundException e) {

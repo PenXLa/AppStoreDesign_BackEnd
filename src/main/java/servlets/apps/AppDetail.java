@@ -4,6 +4,7 @@ import DAO.AppDetailDAO;
 import VO.AppDetailVO;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import kernel.AccountUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,14 +25,14 @@ public class AppDetail extends HttpServlet {
 
     private JSONObject getAppDetail(HttpServletRequest req) {
         JSONObject json = new JSONObject();
-        String appid = req.getParameter("id");
+        String appid = req.getParameter("appid");
         if (appid == null) {
             json.put("success", false);
             json.put("reason", "missing id");
             return json;
         } else {
             try {
-                json.put("detail", AppDetailDAO.getAppDetail(appid));
+                json.put("detail", AppDetailDAO.getAppDetail(appid, AccountUtils.getUser(req.getCookies())));
                 json.put("success", true);
                 return json;
             } catch (SQLException | ClassNotFoundException e) {

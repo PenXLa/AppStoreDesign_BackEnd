@@ -1,7 +1,7 @@
 package DAO.publisher;
 
 import VO.publisher.PubInfoVO;
-import kernel.Utils;
+import utils.Utils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 
 public class PubInfoDAO {
     public static class PublisherNotFoundException extends Exception{}
