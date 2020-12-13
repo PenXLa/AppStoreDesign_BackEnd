@@ -1,7 +1,7 @@
 package servlets.account;
 
-import DAO.OrdersDAO;
-import VO.OrderVO;
+import DAO.MyAppsDAO;
+import VO.UserAppVO;
 import com.alibaba.fastjson.JSONObject;
 import kernel.Account;
 import kernel.AccountUtils;
@@ -16,51 +16,33 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@WebServlet("/orders")
-public class Orders extends HttpServlet {
+@WebServlet("/myapps")
+public class MyApps extends HttpServlet {
+    public static final int DEFAULT_PAGE_SIZE = 15;
     /*
     * 参数：
     * page
     * size
-    *
-    * appid（可选），搜索与appid相关的订单
-    * oid（可选），搜索oid这个订单
-    * appid和oid不同时用，同时出现时oid优先
     * */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         JSONObject res = new JSONObject();
         Account user = AccountUtils.getUser(req.getCookies());
-        int page = Utils.tryParseInt(req.getParameter("page"), 1),
-                pageSize = Utils.tryParseInt(req.getParameter("size"), 10);
-        String appid = req.getParameter("appid");
-        String oid = req.getParameter("oid");
-
+        int page = Utils.tryParseInt(req.getParameter("page"), 1), pageSize = Utils.tryParseInt(req.getParameter("size"), DEFAULT_PAGE_SIZE);
         if (user == null) {
             res.put("success", false);
             res.put("reason", "Please login first");
-        } else if (!"user".equals(user.getRole())) {
-            res.put("success", false);
-            res.put("reason", "Only users can see orders");
         } else {
             try {
-                Pair<Integer, OrderVO[]> orders = null;
-                if (oid != null)
-                    orders = OrdersDAO.getOrder(user, oid);
-                else if (appid != null)
-                    orders = OrdersDAO.getAppOrders(user, appid, page, pageSize);
-                else
-                    orders = OrdersDAO.getAllOrders(user, page, pageSize);
-
-                res.put("orders", orders.getRight());
-                res.put("total", orders.getLeft());
+                Pair<Integer, UserAppVO[]> apps = MyAppsDAO.userApps(user, page, pageSize);
+                res.put("count", apps.getLeft());
+                res.put("apps", apps.getRight());
                 res.put("success", true);
             } catch (SQLException | ClassNotFoundException e) {
+                e.printStackTrace();
                 res.put("success", false);
                 res.put("reason", "DB Error");
-                e.printStackTrace();
             }
-
         }
 
         resp.setContentType("text/json");

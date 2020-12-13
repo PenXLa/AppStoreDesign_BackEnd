@@ -3,6 +3,8 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.jetbrains.annotations.NotNull;
+import utils.ErrorCodes;
+import utils.SelectQuery;
 import utils.Utils;
 
 import javax.crypto.BadPaddingException;
@@ -21,9 +23,9 @@ import java.util.function.Predicate;
 public class AccountUtils {
     public static final int HASH_COST = 10;
     public static final int COOKIE_LOGIN_AGE = 5 *24*60*60;//5天
-    public static final String COOKIE_USER = "email",
+    public static final String COOKIE_USER = "uid",
                                 COOKIE_CHECK_CODE = "token", //校验码，aes(json(CHECK_CODE_USER:hash(用户名), CHECK_CODE_EXPIRE:过期时间))
-                                CHECK_CODE_USER = "email", CHECK_CODE_EXPIRE = "expire";
+                                CHECK_CODE_USER = "uid", CHECK_CODE_EXPIRE = "expire";
 
 
 
@@ -34,16 +36,16 @@ public class AccountUtils {
         return BCrypt.withDefaults().hashToString(HASH_COST, pwd.toCharArray());
     }
     //计算校验码
-    private static String calcCheckCode(@NotNull String email) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
+    private static String calcCheckCode(@NotNull String uid) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
         JSONObject json = new JSONObject();
-        json.put(CHECK_CODE_USER, calcHash(email));
+        json.put(CHECK_CODE_USER, calcHash(uid));
         json.put(CHECK_CODE_EXPIRE, System.currentTimeMillis() + COOKIE_LOGIN_AGE*1000);
         return AES.encrypt(json.toJSONString());
     }
-    private static boolean verifyCheckCode(@NotNull String email, String checkCode) {
+    private static boolean verifyCheckCode(@NotNull String uid, String checkCode) {
         try {
             JSONObject json = JSON.parseObject(AES.decrypt(checkCode));
-            return BCrypt.verifyer().verify(email.toCharArray(), json.getString(CHECK_CODE_USER)).verified &&
+            return BCrypt.verifyer().verify(uid.toCharArray(), json.getString(CHECK_CODE_USER)).verified &&
                     System.currentTimeMillis() < json.getLongValue(CHECK_CODE_EXPIRE);
         } catch (Exception e) {
             return false;
@@ -52,21 +54,20 @@ public class AccountUtils {
 
     public static boolean login(HttpServletResponse resp, String email, String pwd, boolean remember) throws SQLException, ClassNotFoundException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         try(
-                Connection con = Utils.connectDB("AppStoreDesign");
-                PreparedStatement stat = con.prepareStatement("select Email, PassHash from Logins where Email=?");
+            Connection con = Utils.connectDB("AppStoreDesign");
+            PreparedStatement stat = new SelectQuery().select("UID, Email, PassHash").from("Users").where("Email=?", email).toStatement(con);
+            ResultSet res = stat.executeQuery();
         ) {
-            stat.setNString(1, email);
-            var res = stat.executeQuery();
             if (res.next() && BCrypt.verifyer().verify(pwd.toCharArray(), res.getString("PassHash")).verified) {
-                email = res.getNString("Email");//获取大小写准确的Email
-                Cookie emailCK = new Cookie(COOKIE_USER, email);
-                Cookie chkCodeCK = new Cookie(COOKIE_CHECK_CODE, calcCheckCode(email));
+                String uid = res.getNString("UID");
+                Cookie uidCK = new Cookie(COOKIE_USER, uid);
+                Cookie chkCodeCK = new Cookie(COOKIE_CHECK_CODE, calcCheckCode(uid));
                 if (remember) {
-                    emailCK.setMaxAge(COOKIE_LOGIN_AGE);
+                    uidCK.setMaxAge(COOKIE_LOGIN_AGE);
                     chkCodeCK.setMaxAge(COOKIE_LOGIN_AGE);
                 }
-                emailCK.setPath("/"); chkCodeCK.setPath("/");
-                resp.addCookie(emailCK);
+                uidCK.setPath("/"); chkCodeCK.setPath("/");
+                resp.addCookie(uidCK);
                 resp.addCookie(chkCodeCK);
 
                 return true;
@@ -92,7 +93,7 @@ public class AccountUtils {
                 for (Cookie ck : cookies)
                     if (COOKIE_USER.equals(ck.getName())) return new Account(ck.getValue());
             }
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (ClassNotFoundException | SQLException | Account.InvalidUIDException e) {
             e.printStackTrace();
             return null;
         }
@@ -105,32 +106,23 @@ public class AccountUtils {
             REGISTER_FAIL_INVALID_NAME = 2,
             REGISTER_FAIL_INVALID_PWD = 3;
     public static int register(String email, String name, String pwd) throws SQLException, ClassNotFoundException {
-        int code = 0;
-
         if (email == null || email.trim().equals("")) return REGISTER_FAIL_INVALID_NAME;
         if (pwd == null || pwd.equals("")) return REGISTER_FAIL_INVALID_PWD;
         email = email.trim();
 
-        Connection con = Utils.connectDB("AppStoreDesign");
-        PreparedStatement stat = con.prepareStatement("select Email from Users where Email=?");
-        stat.setNString(1, email);
-        var res = stat.executeQuery();
-        if (res.next()) code = REGISTER_FAIL_NAME_EXISTS;
-        else {
-            PreparedStatement insert = con.prepareStatement(
-                    "insert into Users(Email, Name, PassHash, RegisterDate) values(?,?,?,?)");
-            insert.setNString(1, email);
-            insert.setNString(2, name);
-            insert.setNString(3, calcHash(pwd));
-            insert.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
-            insert.executeUpdate();
-            insert.close();
-            code = REGISTER_SUCCESS;
+        try (
+            Connection con = Utils.connectDB("AppStoreDesign");
+            CallableStatement stat = con.prepareCall("{ call UserRegister(?, ?, ?) }")
+        ) {
+            stat.setNString("email", email);
+            stat.setNString("passhash", calcHash(pwd));
+            stat.setNString("name", name);
+            stat.execute();
+            return REGISTER_SUCCESS;
+        } catch (SQLException e) {
+            if (e.getErrorCode()== ErrorCodes.REGISTER_EMAIL_USED) return REGISTER_FAIL_NAME_EXISTS;
+            else throw e;
         }
-        res.close();
-        stat.close();
-        con.close();
-        return code;
     }
 
     public static final int DA_FAIL_NAME_NOT_EXISTS = 1,

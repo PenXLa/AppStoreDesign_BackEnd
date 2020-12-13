@@ -1,6 +1,7 @@
 package DAO;
 
 import VO.AppCommentVO;
+import utils.SelectQuery;
 import utils.Utils;
 
 import java.sql.Connection;
@@ -26,22 +27,22 @@ public class AppCommentsDAO {
         }
         try (
             Connection con = Utils.connectDB("AppStoreDesign");
-            PreparedStatement stat = con.prepareStatement("select * from Logins L, CommentsOn C where AppID = ? and L.Email=C.UID order by " + orderby)
+            PreparedStatement stat = new SelectQuery().select("*").from("Users U INNER JOIN CommentsOn C ON U.UID=C.UID")
+                                        .where("AppID = ?", appid)
+                                        .orderBy(orderby).toStatement(con);
+            ResultSet res = stat.executeQuery();
         ) {
-            stat.setNString(1, appid);
-            try (ResultSet res = stat.executeQuery()) {
-                ArrayList<AppCommentVO> comments = new ArrayList<>();
-                while(res.next()) {
-                    AppCommentVO comment = new AppCommentVO();
-                    comment.authorID = res.getNString("UID");
-                    comment.authorName = res.getNString("Name");
-                    comment.rating = res.getDouble("Rating");
-                    comment.content = res.getNString("Content");
-                    comment.date = res.getTimestamp("Date");
-                    comments.add(comment);
-                }
-                return comments.toArray(new AppCommentVO[0]);
+            ArrayList<AppCommentVO> comments = new ArrayList<>();
+            while(res.next()) {
+                AppCommentVO comment = new AppCommentVO();
+                comment.authorID = res.getNString("UID");
+                comment.authorName = res.getNString("Name");
+                comment.rating = res.getDouble("Rating");
+                comment.content = res.getNString("Content");
+                comment.date = res.getTimestamp("Date");
+                comments.add(comment);
             }
+            return comments.toArray(new AppCommentVO[0]);
         }
     }
 }

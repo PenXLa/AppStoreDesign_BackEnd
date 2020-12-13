@@ -31,20 +31,20 @@ public class ChangeUserInfo extends HttpServlet {
                         res.put("success", false);
                         res.put("reason", "Missing value");
                     } else {
-                        ChangeUserInfoDAO.changeUserName(user.getEmail(), newName.trim());
+                        ChangeUserInfoDAO.changeUserName(user, newName.trim());
                         res.put("success", true);
                     }
                 } else if ("changepasswd".equals(action)) {
                     String newPwd = req.getParameter("value");
-                    String emailCode = req.getParameter("emailCode");
-                    if (newPwd == null || emailCode == null) {
+                    String validatingCode = req.getParameter("validatingCode");
+                    if (newPwd == null || validatingCode == null) {
                         res.put("success", false);
-                        res.put("reason", "Missing value or emailcode");
-                    } else if (!"1234".equals(emailCode)) { //固定的邮箱验证码
+                        res.put("reason", "Missing value or validating code");
+                    } else if (!"1234".equals(validatingCode)) { //固定的邮箱验证码
                         res.put("success", false);
                         res.put("reason", "验证码错误");
                     } else {
-                        ChangeUserInfoDAO.changePasswd(user.getEmail(), newPwd);
+                        ChangeUserInfoDAO.changePasswd(user, newPwd);
                         res.put("success", true);
                     }
                 } else {

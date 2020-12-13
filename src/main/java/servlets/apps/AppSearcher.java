@@ -76,7 +76,7 @@ public class AppSearcher extends HttpServlet {
         int lowSell = 0, highSell = Integer.MAX_VALUE;
         String orderby = "def", order = "desc";
         Account user = AccountUtils.getUser(req.getCookies());
-        String userid = user != null && pMyApps != null ? user.getEmail() : null; //只有包含myApps参数并且已经登录时才进行用户app搜索
+        String userid = user != null && pMyApps != null ? user.getUid() : null; //只有包含myApps参数并且已经登录时才进行用户app搜索
 
         JSONObject res = new JSONObject();
         try {

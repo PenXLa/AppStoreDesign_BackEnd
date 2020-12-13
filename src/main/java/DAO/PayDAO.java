@@ -16,7 +16,7 @@ public class PayDAO {
         ) {
             try {
                 con.setAutoCommit(false); //开始事务
-                stat.setNString(1, user.getEmail());
+                stat.setNString(1, user.getUid());
                 stat.setDouble(2, -amount/1000.0);
 
                 stat.executeUpdate();

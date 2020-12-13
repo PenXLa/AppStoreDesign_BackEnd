@@ -29,10 +29,10 @@ public class AppDetailDAO {
                     detail.req_other = res.getNString("Req_Other");
                     detail.hardDisk = res.getLong("Req_HardDisk");
                     detail.RAM = res.getLong("Req_RAM");
-                    detail.iconType = res.getString("iconType");
+                    detail.icon = Utils.getAppIconURL(appid, res.getString("iconType"));
                     detail.id = appid;
                     detail.introduction = res.getNString("introduction");
-                    detail.lastUpdate = res.getDate("LastUpdate");
+                    detail.lastUpdate = res.getTimestamp("LastUpdate");
                     detail.name = res.getNString("Name");
                     detail.rating = res.getDouble("Rating");
                     detail.site = res.getNString("OfficalSite");
@@ -62,15 +62,15 @@ public class AppDetailDAO {
 
     private static ArrayList<AppDetailVO.AppPlan> getAppPlans(Connection con, String appid, Account user) throws SQLException{
         ArrayList<AppDetailVO.AppPlan> plans = new ArrayList<>();
-        try (PreparedStatement stat = con.prepareStatement("select *,(case when exists (select * from Possesses where appid=AppPlans.appid and planid=AppPlans.planid and uid=?) then 1 else 0 end) Bought from AppPlans where AppID = ?")) {
-            stat.setNString(1, user.getEmail());
+        try (PreparedStatement stat = con.prepareStatement("select *,(case when exists (select * from PossessesEx where AppID=AppPlans.AppID and PlanID=AppPlans.PlanID and UID=?) then 1 else 0 end) Bought from AppPlans where AppID = ?")) {
+            stat.setNString(1, user.getUid());
             stat.setNString(2, appid);
             try (ResultSet res = stat.executeQuery()) {
                 while(res.next()) {
                     AppDetailVO.AppPlan plan = new AppDetailVO.AppPlan();
                     plan.id = res.getString("PlanID");
                     plan.name = res.getNString("Name");
-                    plan.duration = res.getInt("Duration");
+                    plan.duration = res.getLong("Duration");
                     plan.explanation = res.getNString("Explanation");
                     plan.price = res.getDouble("Price");
                     plan.oriprice = res.getDouble("OriginalPrice");

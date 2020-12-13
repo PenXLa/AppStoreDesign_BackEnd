@@ -9,5 +9,5 @@ public class OrderVO {
     public Timestamp date;
     public long price;
     public String description;
-    public boolean returned = false; //是否已退款
+    public short status = 1; //订单状态
 }

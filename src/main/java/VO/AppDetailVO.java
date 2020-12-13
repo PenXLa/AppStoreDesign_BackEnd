@@ -1,5 +1,6 @@
 package VO;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 public class AppDetailVO {
@@ -9,10 +10,10 @@ public class AppDetailVO {
     public Long RAM = null, hardDisk = null;
     public String CPU, GPU, OS, req_other;
     public String publisher; //开发商名字(前端不需要开发商的ID)
-    public Date lastUpdate;
+    public Timestamp lastUpdate;
     public Double rating = null;
     public String site;
-    public String iconType;
+    public String icon;
     public String introduction;
     public String[] tags;
     public static class AppPlan {
@@ -20,7 +21,7 @@ public class AppDetailVO {
         public String name;
         public String explanation;
         public double price, oriprice;
-        public int duration;
+        public long duration;
         public boolean isMain;
         public Boolean bought;
     }

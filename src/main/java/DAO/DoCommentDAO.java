@@ -14,7 +14,7 @@ public class DoCommentDAO {
                     "insert into CommentsOn(AppID, UID, Content, Rating, Date) VALUES(?,?,?,?,?)");
         ) {
             stat.setNString(1, appid);
-            stat.setNString(2, user.getEmail());
+            stat.setNString(2, user.getUid());
             stat.setNString(3, content);
             stat.setDouble(4, rating);
             stat.setTimestamp(5, new Timestamp(System.currentTimeMillis()));

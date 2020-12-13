@@ -1,5 +1,6 @@
 package kernel;
 
+import utils.SelectQuery;
 import utils.Utils;
 
 import java.sql.Connection;
@@ -8,49 +9,52 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Account {
+    public static class InvalidUIDException extends Exception{}
+
+    private String uid;
     private String email;
     private String username = null;
     private String role = null;
     private String publisher = null;//如果role为seller，此变量存储其所在公司
     private long balance = 0; //余额，单位为0.1分
 
+    public String getUid() { return uid; } //因为fastjson会把UID序列化成uID，很难看，所以我就把这个方法名写成了Uid
     public String getEmail() { return email; }
     public String getName() { return username; }
     public String getRole() { return role; }
     public String getPublisher() { return publisher; }
     public long getBalance() { return balance; }
 
-    public Account(String email) {
-        this.email = email;
+    public Account(String uid) throws InvalidUIDException {
+        this.uid = uid;
         try (
                 Connection con = Utils.connectDB("AppStoreDesign");
-                PreparedStatement stat = con.prepareStatement("select Name, Role from Logins where Email = ?");
+                PreparedStatement stat = new SelectQuery().select("Email, Name, URole").from("Users").where("UID=?", uid).toStatement(con);
+                ResultSet res = stat.executeQuery()
         ) {
-            stat.setNString(1, email);
-            try (ResultSet res = stat.executeQuery()) {
-                if (res.next()) {
-                    this.username = res.getNString("Name");
-                    this.role = res.getString("Role");
-                    if ("seller".equals(this.role)) {
-                        try (PreparedStatement detailStat = con.prepareStatement("select * from Sellers where Email=?")) {
-                            detailStat.setNString(1, email);
-                            try (ResultSet detail = detailStat.executeQuery()) {
-                                if (detail.next()) {
-                                    this.publisher = detail.getNString("Publisher");
-                                }
-                            }
-                        }
-                    } else { //user
-                        try (PreparedStatement detailStat = con.prepareStatement("select * from Users where Email=?")) {
-                            detailStat.setNString(1, email);
-                            try (ResultSet detail = detailStat.executeQuery()) {
-                                if (detail.next()) {
-                                    this.balance = (long)(detail.getDouble("Balance")*1000);
-                                }
-                            }
-                        }
+            if (res.next()) {
+                this.email = res.getNString("Email");
+                this.username = res.getNString("Name");
+                this.role = res.getString("URole");
+                if ("seller".equals(this.role)) {
+                    try (
+                        PreparedStatement detailStat = new SelectQuery().select("*").from("Sellers").where("UID=?", uid).toStatement(con);
+                        ResultSet detail = detailStat.executeQuery()
+                    ) {
+                        if (detail.next())
+                            this.publisher = detail.getNString("Publisher");
+                    }
+                } else { //user
+                    try (
+                        PreparedStatement detailStat = new SelectQuery().select("*").from("Users").where("UID=?", uid).toStatement(con);
+                        ResultSet detail = detailStat.executeQuery()
+                    ) {
+                        if (detail.next())
+                            this.balance = (long)(detail.getDouble("Balance")*1000);
                     }
                 }
+            } else {
+                throw new InvalidUIDException();
             }
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -60,7 +64,7 @@ public class Account {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Account && email.equals(((Account)obj).getEmail());
+        return obj instanceof Account && uid.equals(((Account)obj).getUid());
     }
 
     //是否拥有某个app的seller权限
@@ -81,13 +85,12 @@ public class Account {
     public boolean hasBoughtApp(String appid) throws SQLException, ClassNotFoundException {
         try (
             Connection con = Utils.connectDB("AppStoreDesign");
-            PreparedStatement stat = con.prepareStatement("select * from PossessesEx where AppID=? and UID=? And IsMainPlan=1")
+            PreparedStatement stat = new SelectQuery().select("*").from("PossessesEx")
+                                        .where("AppID=?", appid).where("UID=?", uid)
+                                        .where("IsMainPlan=1").toCountStatement(con);
+            ResultSet res = stat.executeQuery()
         ) {
-            stat.setNString(1, appid);
-            stat.setNString(2, email);
-            try (ResultSet res = stat.executeQuery()) {
-                return res.next();
-            }
+            return res.next();
         }
     }
 

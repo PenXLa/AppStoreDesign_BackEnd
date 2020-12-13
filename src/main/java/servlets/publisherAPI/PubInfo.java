@@ -32,7 +32,7 @@ public class PubInfo extends HttpServlet {
             String action = req.getParameter("action");
             if (action == null || "read".equals(action)) { //===读取信息
                 try {
-                    PubInfoVO info = PubInfoDAO.getPubInfo(user.getEmail());
+                    PubInfoVO info = PubInfoDAO.getPubInfo(user);
                     json.put("success", true);
                     json.put("info", info);
                 } catch (SQLException | ClassNotFoundException e) {
@@ -47,7 +47,7 @@ public class PubInfo extends HttpServlet {
                 PubInfoVO info = new PubInfoVO();
                 info.name = req.getParameter("name");
                 try {
-                    PubInfoDAO.setPubInfo(user.getEmail(), info);
+                    PubInfoDAO.setPubInfo(user, info);
                     json.put("success", true);
                 } catch (SQLException | ClassNotFoundException e) {
                     json.put("success", false);

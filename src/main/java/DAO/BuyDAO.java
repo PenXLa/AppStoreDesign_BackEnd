@@ -15,7 +15,7 @@ public class BuyDAO {
             Connection con = Utils.connectDB("AppStoreDesign");
             CallableStatement call = con.prepareCall("{ call BuyPlan(?, ?, ?, ?) }")
         ) {
-            call.setNString("uid", user.getEmail());
+            call.setNString("uid", user.getUid());
             call.setNString("appid", appid);
             call.setNString("planid", planid);
             call.registerOutParameter("oid", Types.VARCHAR);

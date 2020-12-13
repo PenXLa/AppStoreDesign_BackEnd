@@ -2,6 +2,7 @@ package utils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -100,6 +101,16 @@ public class SelectQuery {
 
     public static String paginateTSQL(int page, int size) {
         return String.format(" offset %d rows fetch next %s rows only ", (page-1)*size, size);
+    }
+
+    public int getResultTotalSize(Connection con) throws SQLException {
+        try (
+            PreparedStatement stat = this.toCountStatement(con);
+            ResultSet res = stat.executeQuery();
+        ) {
+            res.next();
+            return res.getInt(1);
+        }
     }
 
 }
