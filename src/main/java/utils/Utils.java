@@ -29,6 +29,27 @@ public class Utils {
             return def;
         }
     }
+    public static Integer tryParseInteger(String s, Integer def) {
+        try {
+            return Integer.valueOf(s);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+    public static Double tryParseDouble(String s, Double def) {
+        try {
+            return Double.valueOf(s);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+    public static Long tryParseLong(String s, Long def) {
+        try {
+            return Long.valueOf(s);
+        } catch (Exception e) {
+            return def;
+        }
+    }
 
 
     public static String getAppIconURL(String appid, String iconType) {
