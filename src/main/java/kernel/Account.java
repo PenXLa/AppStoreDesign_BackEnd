@@ -18,12 +18,17 @@ public class Account {
     private String publisher = null;//如果role为seller，此变量存储其所在公司
     private long balance = 0; //余额，单位为0.1分
 
+
+
+    private boolean isManager = false; //是否是一个公司的manager
+
     public String getUid() { return uid; } //因为fastjson会把UID序列化成uID，很难看，所以我就把这个方法名写成了Uid
     public String getEmail() { return email; }
     public String getName() { return username; }
     public String getRole() { return role; }
     public String getPublisher() { return publisher; }
     public long getBalance() { return balance; }
+    public boolean getIsManager() { return isManager; } //为了fastjson识别，取了个奇怪名字
 
     public Account(String uid) throws InvalidUIDException {
         this.uid = uid;
@@ -38,11 +43,13 @@ public class Account {
                 this.role = res.getString("URole");
                 if ("seller".equals(this.role)) {
                     try (
-                        PreparedStatement detailStat = new SelectQuery().select("*").from("Sellers").where("UID=?", uid).toStatement(con);
+                        PreparedStatement detailStat = new SelectQuery().select("S.*, Manager").from("Sellers S INNER JOIN Publishers P ON S.Publisher=P.PubID").where("UID=?", uid).toStatement(con);
                         ResultSet detail = detailStat.executeQuery()
                     ) {
-                        if (detail.next())
+                        if (detail.next()) {
                             this.publisher = detail.getNString("Publisher");
+                            this.isManager = this.uid.equals(detail.getNString("Manager"));
+                        }
                     }
                 } else { //user
                     try (

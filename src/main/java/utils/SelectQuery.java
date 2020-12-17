@@ -84,9 +84,11 @@ public class SelectQuery {
         if (!conds.isEmpty()) {
             sql.append(" where ");
             for (int i=0; i<conds.size(); ++i) {
+                sql.append("(");
                 sql.append(conds.get(i).cond);
                 for (Object param : conds.get(i).params)
                     params.add(param);
+                sql.append(")");
                 if (i < conds.size() - 1) sql.append(" AND ");
             }
         }

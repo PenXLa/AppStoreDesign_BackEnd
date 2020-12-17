@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 public class AppDetailVO {
-    public String id, name, code;
+    public String id, name;
     public Long size = null;
     public String version;
     public Long RAM = null, hardDisk = null;

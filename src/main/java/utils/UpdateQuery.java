@@ -42,8 +42,10 @@ public class UpdateQuery {
         if (!conds.isEmpty()) {
             sql.append(" where ");
             for (int i=0; i<conds.size(); ++i) {
+                sql.append("(");
                 sql.append(conds.get(i).getLeft());
                 for (Object param : conds.get(i).getRight()) params.add(param);
+                sql.append(")");
                 if (i < conds.size() - 1) sql.append(" AND ");
             }
         }

@@ -24,10 +24,12 @@ public class AppSearcher {
         sql.where(String.format("Volume Between %d and %d", lowSell, highSell));
         if (name != null && !"".equals(name))
             sql.where("Name like ?", "%" + name + "%");
-        if (publisher != null && !"".equals(publisher))  //查某个开发商的app
+        if (publisher != null && !"".equals(publisher))  //查某个开发商的app，公有查询
             sql.where("Publisher=?", publisher);
-        if (user != null && !"".equals(user))  //查某个用户的app
+        if (user != null && !"".equals(user))  //查某个用户的app，私有查询，此时下架软件也显示
             sql.where("AppID in (select AppID from PossessesEx where UID=? AND IsMainPlan=1)", user);
+        else //公有查询，不显示下架软件
+            sql.where("Active = 1");
 
         if ("def".equals(orderby)) {
             sql.orderBy("(Volume-Price+Rating) " + order);
@@ -42,8 +44,6 @@ public class AppSearcher {
         }
         sql.paginate(page, count);
 
-        //标签过滤
-        //还没有实现
 
         AppSearchResult searchResult = new AppSearchResult();
         searchResult.items = new ArrayList<>();
@@ -78,7 +78,7 @@ public class AppSearcher {
         }
     }
 
-    //开发商自己的app，没有搜索参数，不分页
+    //开发商自己的app，私有查询，没有搜索参数，不分页
     public static AppSearchResult publisherSearch(String publisher) throws SQLException, ClassNotFoundException {
         AppSearchResult searchResult = new AppSearchResult();
         searchResult.items = new ArrayList<>();

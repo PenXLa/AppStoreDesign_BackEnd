@@ -21,13 +21,13 @@ public class ChangeUserInfoDAO {
 
     }
 
-    public static void changePasswd(Account user, String pwd) throws SQLException, ClassNotFoundException {
+    public static void changePasswd(String email, String pwd) throws SQLException, ClassNotFoundException {
         try (
                 Connection con = Utils.connectDB("AppStoreDesign");
-                PreparedStatement stat = con.prepareStatement("update Users set PassHash=? where UID=?");
+                PreparedStatement stat = con.prepareStatement("update Users set PassHash=? where Email=?");
         ) {
             stat.setNString(1, AccountUtils.calcHash(pwd));
-            stat.setNString(2, user.getUid());
+            stat.setNString(2, email);
             stat.executeUpdate();
         }
     }

@@ -30,7 +30,7 @@ public class AppComments extends HttpServlet {
         } else {
             AppCommentsDAO.Order order;
             if ("rating-lowest".equals(orderby)) {
-                order = AppCommentsDAO.Order.RATING_HIGHEST;
+                order = AppCommentsDAO.Order.RATING_LOWEST;
             } else if ("date-latest".equals(orderby)) {
                 order = AppCommentsDAO.Order.DATE_LATEST;
             } else if ("date-oldest".equals(orderby)) {

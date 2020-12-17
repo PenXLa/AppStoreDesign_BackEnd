@@ -90,7 +90,7 @@ public class AppSearcher extends HttpServlet {
             if (pHighPri != null) highPri = Double.parseDouble(pHighPri);
             if (pLowSell != null) lowSell = Integer.parseInt(pLowSell);
             if (pHighSell != null) highSell = Integer.parseInt(pHighSell);
-            if (pOrderBy != null && pOrderBy.matches("(def|sell|price|rating)")) orderby = pOrderBy;
+            if (pOrderBy != null && pOrderBy.matches("(def|sell|price|rating|name)")) orderby = pOrderBy;
             if (pOrder != null && pOrder.matches("(asc|desc)")) order = pOrder;
         } catch (RuntimeException e) {
             res.put("success", false);

@@ -31,7 +31,6 @@ public class AppDetailDAO {
                     detail.RAM = res.getLong("Req_RAM");
                     detail.icon = Utils.getAppIconURL(appid, res.getString("iconType"));
                     detail.id = appid;
-                    detail.code = res.getNString("AppCode");
                     detail.introduction = res.getNString("introduction");
                     detail.lastUpdate = res.getTimestamp("LastUpdate");
                     detail.name = res.getNString("Name");
@@ -65,7 +64,7 @@ public class AppDetailDAO {
     private static ArrayList<AppDetailVO.AppPlan> getAppPlans(Connection con, String appid, Account user, boolean needSellerInfo) throws SQLException{
         ArrayList<AppDetailVO.AppPlan> plans = new ArrayList<>();
         try (PreparedStatement stat = con.prepareStatement("select *,(case when exists (select * from PossessesEx where AppID=AppPlans.AppID and PlanID=AppPlans.PlanID and UID=?) then 1 else 0 end) Bought from AppPlans where AppID = ?")) {
-            stat.setNString(1, user.getUid());
+            stat.setNString(1, user!=null ? user.getUid() : null);
             stat.setNString(2, appid);
             try (ResultSet res = stat.executeQuery()) {
                 while(res.next()) {
@@ -73,7 +72,7 @@ public class AppDetailDAO {
                     plan.id = res.getString("PlanID");
                     plan.code = res.getNString("PlanCode");
                     plan.name = res.getNString("Name");
-                    plan.duration = res.getLong("Duration");
+                    plan.duration = res.getLong("Duration")/24/60/60;
                     plan.explanation = res.getNString("Explanation");
                     plan.price = res.getDouble("Price");
                     plan.oriprice = res.getDouble("OriginalPrice");

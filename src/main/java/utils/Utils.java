@@ -60,4 +60,21 @@ public class Utils {
         res.put("success", false);
         res.put("reason", reason);
     }
+    public static void setJSONError(JSONObject res, String code, String reason) {
+        res.put("success", false);
+        res.put("reason", reason);
+        res.put("errcode", code);
+    }
+
+    public static String getExtName(String file) {
+        if (file == null) return null;
+        // split用的是正则，所以需要用 //. 来做分隔符
+        String[] split = file.split("\\.");
+        //注意判断截取后的数组长度，数组最后一个元素是后缀名
+        if (split.length > 1) {
+            return split[split.length - 1];
+        } else {
+            return "";
+        }
+    }
 }

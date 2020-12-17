@@ -27,7 +27,7 @@ public class ChangePlanInfoDAO {
         if (plan.oriprice != null)
             sql.set("OriginalPrice=?", plan.oriprice);
         if (plan.duration != null)
-            sql.set("Duration=?", plan.duration);
+            sql.set("Duration=?", plan.duration*60*60*24);
         if (plan.active != null)
             sql.set("Active=?", plan.active);
 

@@ -24,6 +24,7 @@ public class PubInfoDAO {
             if (res.next()) {
                 PubInfoVO ret = new PubInfoVO();
                 ret.name = res.getNString("PName");
+                ret.income = res.getDouble("Income");
                 return ret;
             } else throw new PublisherNotFoundException();
         }

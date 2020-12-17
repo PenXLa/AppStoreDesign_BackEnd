@@ -28,7 +28,7 @@ public class PubInfo extends HttpServlet {
 
         JSONObject json = new JSONObject();
         Account user = AccountUtils.getUser(req.getCookies());
-        if ("seller".equals(user.getRole())) { //验证权限
+        if (user != null && "seller".equals(user.getRole())) { //验证权限
             String action = req.getParameter("action");
             if (action == null || "read".equals(action)) { //===读取信息
                 try {
